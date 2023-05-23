@@ -1,166 +1,57 @@
-// Tic-Tac-Toe game logic
+var board = [['', '', ''], ['', '', ''], ['', '', '']];
+var currentPlayer = 'X';
 
-// Create a 2D array to represent the game board
-const board = [
-  ['', '', ''],
-  ['', '', ''],
-  ['', '', '']
-];
-
-let currentPlayer = 'X';
-let isGameOver = false;
-
-const canvas = document.getElementById('board');
-const context = canvas.getContext('2d');
-
-// Draw the Tic-Tac-Toe grid
-function drawBoard() {
-  context.clearRect(0, 0, canvas.width, canvas.height);
-
-  context.strokeStyle = 'black';
-  context.lineWidth = 4;
-
-  // Draw horizontal lines
-  for (let i = 1; i < 3; i++) {
-    context.beginPath();
-    context.moveTo(0, i * 100);
-    context.lineTo(canvas.width, i * 100);
-    context.stroke();
-  }
-
-  // Draw vertical lines
-  for (let i = 1; i < 3; i++) {
-    context.beginPath();
-    context.moveTo(i * 100, 0);
-    context.lineTo(i * 100, canvas.height);
-    context.stroke();
-  }
-
-  // Draw X and O symbols
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 3; col++) {
-      const cell = board[row][col];
-      const xPos = col * 100 + 50;
-      const yPos = row * 100 + 50;
-
-      context.font = '50px Arial';
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-
-      if (cell === 'X') {
-        context.fillStyle = 'blue';
-        context.fillText(cell, xPos, yPos);
-      } else if (cell === 'O') {
-        context.fillStyle = 'red';
-        context.fillText(cell, xPos, yPos);
+var cells = document.querySelectorAll('.tic-tac-toe-cell');
+function makeMove() {
+  for (var i = 0; i < 3; i++) {
+      for (var j = 0; j < 3; j++) {
+          if (board[i][j] === '') {
+              board[i][j] = 'O';
+              var cellIndex = i * 3 + j;
+              cells[cellIndex].textContent = 'O';
+              return;
+          }
       }
+  }
+}
+
+cells.forEach(function (cell, index) {
+  cell.addEventListener('click', function () {
+      if (this.textContent !== '') return;
+      var row = Math.floor(index / 3);
+      var col = index % 3;
+      this.textContent = 'X';
+      board[row][col] = 'X';
+      checkWin();
+      makeMove();
+      checkWin();
+  });
+});
+
+document.querySelector('#reset-button').addEventListener('click', function () {
+    board = [['', '', ''], ['', '', ''], ['', '', '']];
+    currentPlayer = 'X';
+    cells.forEach(function (cell) {
+        cell.textContent = '';
+    });
+});
+
+function checkWin() {
+    for (var i = 0; i < 3; i++) {
+        // Check rows
+        if (board[i][0] !== '' && board[i][0] === board[i][1] && board[i][0] === board[i][2]) {
+            alert(board[i][0] + ' wins!');
+        }
+        // Check columns
+        if (board[0][i] !== '' && board[0][i] === board[1][i] && board[0][i] === board[2][i]) {
+            alert(board[0][i] + ' wins!');
+        }
     }
-  }
-}
-
-// Handle mouse clicks on the canvas
-function handleClick(event) {
-  if (isGameOver) return;
-
-  const rect = canvas.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-
-  const row = Math.floor(y / 100);
-  const col = Math.floor(x / 100);
-
-  if (board[row][col] === '') {
-    board[row][col] = currentPlayer;
-    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-
-    drawBoard();
-    checkWinner();
-  }
-}
-
-// Check if a player has won
-function checkWinner() {
-  // Check rows
-  for (let row = 0; row < 3; row++) {
-    if (
-      board[row][0] === currentPlayer &&
-      board[row][1] === currentPlayer &&
-      board[row][2] === currentPlayer
-    ) {
-      announceWinner(currentPlayer);
-      announceLoser(currentPlayer === 'X' ? 'O' : 'X');
-      return;
+    // Check diagonals
+    if (board[0][0] !== '' && board[0][0] === board[1][1] && board[0][0] === board[2][2]) {
+        alert(board[0][0] + ' wins!');
     }
-  }
-
-  // Check columns
-  for (let col = 0; col < 3; col++) {
-    if (
-      board[0][col] === currentPlayer &&
-      board[1][col] === currentPlayer &&
-      board[2][col] === currentPlayer
-    ) {
-      announceWinner(currentPlayer);
-      announceLoser(currentPlayer === 'X' ? 'O' : 'X');
-      return;
+    if (board[0][2] !== '' && board[0][2] === board[1][1] && board[0][2] === board[2][0]) {
+        alert(board[0][2] + ' wins!');
     }
-  }
-
-  // Check diagonals
-  if (
-    (board[0][0] === currentPlayer &&
-      board[1][1] === currentPlayer &&
-      board[2][2] === currentPlayer) ||
-    (board[0][2] === currentPlayer &&
-      board[1][1] === currentPlayer &&
-      board[2][0] === currentPlayer)
-  ) {
-    announceWinner(currentPlayer);
-    announceLoser(currentPlayer === 'X' ? 'O' : 'X');
-    return;
-  }
-
-  // Check for a tie
-  if (board.flat().every(cell => cell !== '')) {
-    announceTie();
-  }
 }
-
-// Announce the winner and end the game
-function announceWinner(winner) {
-  isGameOver = true;
-  setTimeout(() => {
-    alert(`${winner} wins!`);
-    resetGame();
-  }, 100);
-}
-
-// Announce the loser
-function announceLoser(loser) {
-  setTimeout(() => {
-    alert(`${loser} loses!`);
-  }, 200);
-}
-
-// Announce a tie and end the game
-function announceTie() {
-  isGameOver = true;
-  setTimeout(() => {
-    alert("It's a tie!");
-    resetGame();
-  }, 100);
-}
-
-// Reset the game board
-function resetGame() {
-  board.forEach(row => row.fill(''));
-  currentPlayer = 'X';
-  isGameOver = false;
-  drawBoard();
-}
-
-// Attach event listener to canvas
-canvas.addEventListener('click', handleClick);
-
-// Initial board drawing
-drawBoard();

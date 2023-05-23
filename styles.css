@@ -1,0 +1,24 @@
+#tic-tac-toe-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  width: 300px;
+}
+
+.tic-tac-toe-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.tic-tac-toe-cell {
+  height: 100px;
+  width: 100px;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+}
