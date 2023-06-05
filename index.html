@@ -1,27 +1,292 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <title>Tic Tac Toe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/css/uikit.min.css" />
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 300px;
+        }
+
+        #board {
+            border: 1px solid black;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <div id="tic-tac-toe-board">
-        <div class="tic-tac-toe-row">
-            <div class="tic-tac-toe-cell"></div>
-            <div class="tic-tac-toe-cell"></div>
-            <div class="tic-tac-toe-cell"></div>
-        </div>
-        <div class="tic-tac-toe-row">
-            <div class="tic-tac-toe-cell"></div>
-            <div class="tic-tac-toe-cell"></div>
-            <div class="tic-tac-toe-cell"></div>
-        </div>
-        <div class="tic-tac-toe-row">
-            <div class="tic-tac-toe-cell"></div>
-            <div class="tic-tac-toe-cell"></div>
-            <div class="tic-tac-toe-cell"></div>
+    <div id="container">
+        <h1 class="uk-heading-small">Tic Tac Toe</h1>
+        <canvas id="board" width="300" height="300"></canvas>
+        <div class="button-container">
+            <button id="playButton" class="uk-button uk-button-primary">Play</button>
+            <button id="resetButton" class="uk-button uk-button-default" disabled>Reset</button>
         </div>
     </div>
-    <button id="reset-button">Reset Game</button>
-    <script src="script.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/js/uikit.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.6.22/js/uikit-icons.min.js"></script>
+    <script>
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+        const playButton = document.getElementById('playButton');
+        const resetButton = document.getElementById('resetButton');
+        const container = document.getElementById('container');
+
+        const boardSize = 3;
+        const cellSize = canvas.width / boardSize;
+        let board = [];
+        let currentPlayer;
+        let gameOver;
+        let difficulty;
+
+        playButton.addEventListener('click', startGame);
+        resetButton.addEventListener('click', resetGame);
+        canvas.addEventListener('click', makeMove);
+
+        function startGame() {
+            const difficultySelect = prompt('Choose difficulty: easy, medium, or hard');
+            if (difficultySelect === 'easy' || difficultySelect === 'medium' || difficultySelect === 'hard') {
+                difficulty = difficultySelect;
+                resetGame();
+                playButton.style.display = 'none';
+                resetButton.disabled = false;
+                currentPlayer = Math.random() < 0.5 ? 'player' : 'bot';
+                gameOver = false;
+                drawBoard();
+                if (currentPlayer === 'bot') {
+                    setTimeout(makeBotMove, 500);
+                }
+            } else {
+                alert('Invalid difficulty selection! Please choose easy, medium, or hard.');
+            }
+        }
+
+        function resetGame() {
+            board = [];
+            for (let row = 0; row < boardSize; row++) {
+                board[row] = Array(boardSize).fill(null);
+            }
+            currentPlayer = null;
+            gameOver = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBoard();
+            playButton.style.display = 'block';
+            resetButton.disabled = true;
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            for (let i = 1; i < boardSize; i++) {
+                ctx.moveTo(i * cellSize, 0);
+                ctx.lineTo(i * cellSize, canvas.height);
+                ctx.moveTo(0, i * cellSize);
+                ctx.lineTo(canvas.width, i * cellSize);
+            }
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            for (let row = 0; row < boardSize; row++) {
+                for (let col = 0; col < boardSize; col++) {
+                    const cell = board[row][col];
+                    if (cell === 'X') {
+                        ctx.font = '48px Arial';
+                        ctx.fillText(cell, col * cellSize + cellSize / 2 - 18, row * cellSize + cellSize / 2 + 18);
+                    } else if (cell === 'O') {
+                        ctx.font = '48px Arial';
+                        ctx.fillText(cell, col * cellSize + cellSize / 2 - 20, row * cellSize + cellSize / 2 + 18);
+                    }
+                }
+            }
+        }
+
+        function makeMove(event) {
+            if (!gameOver && currentPlayer === 'player') {
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const col = Math.floor(x / cellSize);
+                const row = Math.floor(y / cellSize);
+
+                if (board[row][col] === null) {
+                    board[row][col] = 'X';
+                    drawBoard();
+                    checkGameStatus();
+                    currentPlayer = 'bot';
+                    if (!gameOver) {
+                        setTimeout(makeBotMove, 500);
+                    }
+                }
+            }
+        }
+
+        function makeBotMove() {
+            if (currentPlayer === 'bot') {
+                let row, col;
+
+                if (difficulty === 'easy') {
+                    do {
+                        row = Math.floor(Math.random() * boardSize);
+                        col = Math.floor(Math.random() * boardSize);
+                    } while (board[row][col] !== null);
+                } else if (difficulty === 'medium') {
+                    const emptyCells = [];
+                    for (let r = 0; r < boardSize; r++) {
+                        for (let c = 0; c < boardSize; c++) {
+                            if (board[r][c] === null) {
+                                emptyCells.push({ row: r, col: c });
+                            }
+                        }
+                    }
+                    const randomIndex = Math.floor(Math.random() * emptyCells.length);
+                    row = emptyCells[randomIndex].row;
+                    col = emptyCells[randomIndex].col;
+                } else if (difficulty === 'hard') {
+                    const bestMove = getBestMove(board, 'O');
+                    if (bestMove) {
+                        row = bestMove.row;
+                        col = bestMove.col;
+                    }
+                }
+
+                if (row !== undefined && col !== undefined) {
+                    board[row][col] = 'O';
+                    drawBoard();
+                    checkGameStatus();
+                    currentPlayer = 'player';
+                }
+            }
+        }
+
+        function checkGameStatus() {
+            const winningCombinations = [
+                [[0, 0], [0, 1], [0, 2]],
+                [[1, 0], [1, 1], [1, 2]],
+                [[2, 0], [2, 1], [2, 2]],
+                [[0, 0], [1, 0], [2, 0]],
+                [[0, 1], [1, 1], [2, 1]],
+                [[0, 2], [1, 2], [2, 2]],
+                [[0, 0], [1, 1], [2, 2]],
+                [[0, 2], [1, 1], [2, 0]]
+            ];
+
+            for (let i = 0; i < winningCombinations.length; i++) {
+                const [[rowA, colA], [rowB, colB], [rowC, colC]] = winningCombinations[i];
+                if (
+                    board[rowA][colA] &&
+                    board[rowA][colA] === board[rowB][colB] &&
+                    board[rowA][colA] === board[rowC][colC]
+                ) {
+                    gameOver = true;
+                    if (board[rowA][colA] === 'X') {
+                        alert('You win!');
+                    } else if (board[rowA][colA] === 'O') {
+                        alert('Bot wins!');
+                    }
+                    return;
+                }
+            }
+
+            let isBoardFull = true;
+            for (let row = 0; row < boardSize; row++) {
+                for (let col = 0; col < boardSize; col++) {
+                    if (board[row][col] === null) {
+                        isBoardFull = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isBoardFull) {
+                gameOver = true;
+                alert("It's a tie!");
+            }
+        }
+
+        function getBestMove(board, player) {
+            let bestScore = player === 'O' ? -Infinity : Infinity;
+            let bestMove;
+
+            for (let row = 0; row < boardSize; row++) {
+                for (let col = 0; col < boardSize; col++) {
+                    if (board[row][col] === null) {
+                        board[row][col] = player;
+                        const score = minimax(board, 0, false);
+                        board[row][col] = null;
+
+                        if (player === 'O' && score > bestScore) {
+                            bestScore = score;
+                            bestMove = { row, col };
+                        } else if (player === 'X' && score < bestScore) {
+                            bestScore = score;
+                            bestMove = { row, col };
+                        }
+                    }
+                }
+            }
+
+            return bestMove;
+        }
+
+        function minimax(board, depth, isMaximizing) {
+            const scores = {
+                X: -1,
+                O: 1,
+                tie: 0
+            };
+
+            const result = checkGameStatus();
+            if (result !== null) {
+                return scores[result];
+            }
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let row = 0; row < boardSize; row++) {
+                    for (let col = 0; col < boardSize; col++) {
+                        if (board[row][col] === null) {
+                            board[row][col] = 'O';
+                            const score = minimax(board, depth + 1, false);
+                            board[row][col] = null;
+                            bestScore = Math.max(score, bestScore);
+                        }
+                    }
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let row = 0; row < boardSize; row++) {
+                    for (let col = 0; col < boardSize; col++) {
+                        if (board[row][col] === null) {
+                            board[row][col] = 'X';
+                            const score = minimax(board, depth + 1, true);
+                            board[row][col] = null;
+                            bestScore = Math.min(score, bestScore);
+                        }
+                    }
+                }
+                return bestScore;
+            }
+        }
+    </script>
 </body>
 </html>
