@@ -14,6 +14,8 @@ playButton.addEventListener("click", startGame);
 resetButton.addEventListener("click", resetGame);
 canvas.addEventListener("click", makeMove);
 
+drawBoard();
+
 function startGame() {
   resetGame();
   playButton.style.display = "none";
@@ -165,9 +167,17 @@ function checkGameStatus() {
     ) {
       gameOver = true;
       if (board[rowA][colA] === "X") {
-        alert("You win!");
+        Swal.fire({
+          title: 'You Win!',
+          icon: 'success',
+          confirmButtonText: 'Cool'
+        })
       } else if (board[rowA][colA] === "O") {
-        alert("Bot wins!");
+        Swal.fire({
+          title: 'You Lose!',
+          icon: 'error',
+          confirmButtonText: 'Cool'
+        })
       }
       return;
     }
@@ -185,7 +195,10 @@ function checkGameStatus() {
 
   if (isBoardFull) {
     gameOver = true;
-    alert("It's a tie!");
+    Swal.fire({
+      title: `It's a tie!`,
+      confirmButtonText: 'Cool'
+    })
   }
 }
 
