@@ -189,31 +189,6 @@ function checkGameStatus() {
   }
 }
 
-function getBestMove(board, player) {
-  let bestScore = player === "O" ? -Infinity : Infinity;
-  let bestMove;
-
-  for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-      if (board[row][col] === null) {
-        board[row][col] = player;
-        const score = minimax(board, 0, false);
-        board[row][col] = null;
-
-        if (player === "O" && score > bestScore) {
-          bestScore = score;
-          bestMove = { row, col };
-        } else if (player === "X" && score < bestScore) {
-          bestScore = score;
-          bestMove = { row, col };
-        }
-      }
-    }
-  }
-
-  return bestMove;
-}
-
 function minimax(board, depth, isMaximizing) {
   const scores = {
     X: -1,
